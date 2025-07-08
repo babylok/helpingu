@@ -2,4 +2,6 @@
 //const baseUrl = import.meta.env.VITE_API_BASE_URL || "https://rent-car-one-rust.vercel.app";
 const baseUrl = import.meta.env.VITE_API_BASE_URL || "https://vercel-express-app-production.up.railway.app";
 
+//local
+//const baseUrl = "http://localhost:5000";
 export default baseUrl;
