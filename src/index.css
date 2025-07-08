@@ -1,0 +1,154 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 330 100% 98%;
+    --foreground: 240 10% 30%;
+
+    --card: 330 100% 97%;
+    --card-foreground: 240 10% 30%;
+
+    --popover: 330 100% 97%;
+    --popover-foreground: 240 10% 30%;
+
+    --primary: 334 100% 80%;
+    --primary-foreground: 240 10% 30%;
+
+    --secondary: 35 100% 73%;
+    --secondary-foreground: 240 10% 30%;
+
+    --muted: 210 10% 70%;
+    --muted-foreground: 240 10% 40%;
+
+    --accent: 195 100% 80%;
+    --accent-foreground: 240 10% 30%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 330 100% 90%;
+    --input: 330 100% 90%;
+    --ring: 334 100% 80%;
+
+    --radius: 1.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-sans;
+    font-feature-settings: "ss01", "ss02", "cv01", "cv02", "cv03";
+  }
+  
+  html {
+    @apply scroll-smooth;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-kawaii;
+  }
+}
+
+@layer components {
+  .glass-card {
+    @apply bg-white/80 backdrop-blur-lg border border-white/40 rounded-[20px] shadow-lg;
+  }
+  
+  .button-glow {
+    @apply relative overflow-hidden;
+  }
+  
+  .button-glow::after {
+    content: "";
+    @apply absolute inset-0 bg-white/20 opacity-0 transition-opacity duration-300;
+  }
+  
+  .button-glow:hover::after {
+    @apply opacity-100;
+  }
+  
+  .map-container {
+    @apply h-full w-full rounded-[20px] shadow-lg overflow-hidden;
+  }
+  
+  .card-hover {
+    @apply transition-all duration-200 hover:scale-[1.02] hover:shadow-xl;
+  }
+  
+  .input-field {
+    @apply bg-white/50 border border-kawaii-pink/30 rounded-[15px] px-4 py-2 text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-kawaii-pink/50;
+  }
+
+  .kawaii-button {
+    @apply rounded-[15px] bg-kawaii-pink text-white font-medium px-6 py-3 shadow-md hover:shadow-lg transition-all duration-200 hover:translate-y-[-2px];
+  }
+
+  .kawaii-card {
+    @apply bg-white rounded-[20px] border border-kawaii-pink/30 p-5 shadow-md hover:shadow-lg transition-all;
+  }
+  
+  .kawaii-icon {
+    @apply text-kawaii-pink hover:animate-wiggle transition-all;
+  }
+}
+
+.kawaii-gradient {
+  background: linear-gradient(to right bottom, rgba(255, 151, 193, 0.2), rgba(255, 201, 119, 0.2));
+}
+
+.animated-bg {
+  background-size: 400% 400%;
+  animation: gradient 15s ease infinite;
+  background: linear-gradient(-45deg, #FFC977, #FFF6F9, #9ADCFF, #FF97C1);
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 151, 193, 0.1);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 151, 193, 0.3);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 151, 193, 0.5);
+}
+
+/* Kawaii decoration elements */
+.kawaii-blob {
+  border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+}
+
+.kawaii-dot-pattern {
+  background-image: radial-gradient(#FF97C1 1px, transparent 1px);
+  background-size: 20px 20px;
+}
