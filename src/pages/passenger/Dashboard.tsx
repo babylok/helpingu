@@ -28,7 +28,10 @@ const PassengerDashboard = () => {
   const [activeTab, setActiveTab] = useState("book");
   const [rideState, setRideState] = useState<"booking" | "ongoing" | "none">("none");
   const [pickup, setPickup] = useState("");
+  const [pickupDistrict,setPickupDistrict] = useState("");
   const [destination, setDestination] = useState("");
+  const [destinationDistrict,setDestinationDistrict] = useState("");
+  const [directions,setDirections] = useState<any>(null);
   const [pickupLocation, setPickupLocation] = useState<LatLngLiteral | null>({ lat: undefined, lng: undefined });
   const [dropoffLocation, setDropoffLocation] = useState<LatLngLiteral | null>({ lat: undefined, lng: undefined });
   const [pickupSuggestions, setPickupSuggestions] = useState<any[]>([]);
@@ -49,6 +52,12 @@ const PassengerDashboard = () => {
   const [selectedExtra, setSelectedExtra] = useState<any[]>([]);
   const [user, setUser] = useState<any>(null);
   const [driver, setDriver] = useState<any>(null);
+  const [isTunnelOption1,setIsTunnelOption1] = useState(false);
+  const [isTunnelOption2,setIsTunnelOption2] = useState(false);
+  const [isTunnelOption3,setIsTunnelOption3] = useState(false);
+  const [passTunnel, setPassTunnel] = useState<any[]>([]);
+  const [tunnelFeeSum,setTunnelFeeSum] = useState<number>(0);
+  
 
 
   // Refs
@@ -122,8 +131,60 @@ const PassengerDashboard = () => {
     checkStatus();
   }, []);
 
+
+  useEffect(() => {
+    if (pickupDistrict && destinationDistrict) {
+     
+      setIsTunnelOption1(false);
+      setIsTunnelOption2(false);
+      setIsTunnelOption3(false);
+      if((!pickupDistrict.includes("元朗")||!pickupDistrict.includes("上水"))&&destinationDistrict.includes("元朗")){
+        setDirections("in")
+        console.log("元朗去")
+        setIsTunnelOption1(true);
+          
+      }
+      if(pickupDistrict.includes("元朗") && (!destinationDistrict.includes("元朗")||!destinationDistrict.includes("上水"))){
+        setDirections("out")
+        console.log("元朗回")
+        setIsTunnelOption1(true);
+        
+      }
+      if((!pickupDistrict.includes("沙田")||!pickupDistrict.includes("大埔")||!pickupDistrict.includes("上水")) && (destinationDistrict.includes("沙田")||destinationDistrict.includes("大埔")||destinationDistrict.includes("上水"))){
+        setDirections("in")
+        console.log("沙田去")
+        setIsTunnelOption2(true);
+        
+      }
+      if((pickupDistrict.includes("沙田")||pickupDistrict.includes("大埔")||pickupDistrict.includes("上水")) && (!destinationDistrict.includes("沙田")||!destinationDistrict.includes("大埔")||!destinationDistrict.includes("上水"))){
+        setDirections("out")
+        console.log("沙田回")
+        setIsTunnelOption2(true);
+        
+      }
+      if(pickupDistrict.includes("香港") && !destinationDistrict.includes("香港")){
+        setDirections("in")
+        console.log('香港去')
+        setIsTunnelOption3(true);
+      
+      }
+      if(!pickupDistrict.includes("香港") && destinationDistrict.includes("香港")){
+        setDirections("out")
+        console.log('香港回')
+        setIsTunnelOption3(true);
+        
+      }
+      
+    }else{
+      setIsTunnelOption1(false);
+      setIsTunnelOption2(false);
+      setIsTunnelOption3(false);
+    }
+  }, [pickupDistrict, destinationDistrict]);
+
   const handlePickupSelect = (suggestion: any) => {
     //console.log(suggestion);
+    setPickupDistrict(suggestion.address.city);
     let items = suggestion.display_name.split(',');
     let modifiedString = items.slice(0, -3).join(',');
     setPickup(modifiedString);
@@ -145,6 +206,7 @@ const PassengerDashboard = () => {
     let items = suggestion.display_name.split(',');
     let modifiedString = items.slice(0, -3).join(',');
     setDestination(modifiedString);
+    setDestinationDistrict(suggestion.address.city);
     setDropoffSuggestions([]);
     setDropoffLocation({
       lat: parseFloat(suggestion.lat),
@@ -186,7 +248,7 @@ const PassengerDashboard = () => {
       if (timeSinceLastInput >= 500) {
         try {
           //console.log('searching for:', query)
-          const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&bounded=1&viewbox=113.8342,22.1967,114.3908,22.5747&q=${encodeURIComponent(query)}`);
+          const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&bounded=1&viewbox=113.8342,22.1967,114.3908,22.5747&q=${encodeURIComponent(query)}&addressdetails=1`);
           const data = await response.json();
           //console.log(data)
           setPickupSuggestions(data);
@@ -231,7 +293,7 @@ const PassengerDashboard = () => {
       if (timeSinceLastInput >= 500) {
         try {
           //console.log('searching for:', query)
-          const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&bounded=1&viewbox=113.8342,22.1967,114.3908,22.5747&q=${encodeURIComponent(query)}`);
+          const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&bounded=1&viewbox=113.8342,22.1967,114.3908,22.5747&q=${encodeURIComponent(query)}&addressdetails=1`);
           const data = await response.json();
           //console.log(data)
           setDropoffSuggestions(data);
@@ -255,7 +317,7 @@ const PassengerDashboard = () => {
 
 
   const quoteSearch = async () => {
-    console.log(pickupLocation, dropoffLocation);
+    //console.log(pickupLocation, dropoffLocation);
     if (!pickupLocation.lat || !pickupLocation.lng || !dropoffLocation.lat || !dropoffLocation.lng) {
       toast.error("Please enter both pickup and destination locations");
       return;
@@ -269,7 +331,8 @@ const PassengerDashboard = () => {
       const response = await axios.post(`${baseUrl}/api/calculate-route`, {
         origin: pickupLocation,
         destination: dropoffLocation,
-        tunnels: selectedTunnels
+        tunnels: selectedTunnels,
+        directions: directions
       });
       console.log(response.data);
       if (response.data.path) {
@@ -277,6 +340,9 @@ const PassengerDashboard = () => {
         console.log("TotalDistance", response.data.totalDistance);
         setRouteDistance(response.data.totalDistance);
         setRouteDuration(response.data.totalDuration);
+        setPassTunnel(response.data.tunnel);
+        console.log("PassTunnel", response.data.tunnel.length);
+        setTunnelFeeSum(response.data.tunnelFeeSum);
 
         // 更新總價格（車輛價格 + 隧道費用）
         const vehiclePrice = vehicleOptions.find(v => v.id === selectedVehicleData?.id)?.price || 0;
@@ -340,7 +406,7 @@ const PassengerDashboard = () => {
           address: destination
         },
         vehicleType: vehicleData.name,
-        estimatedPrice: Math.round(Number(vehicleData.price) * Number(routeDistance) / 1000) + selectedExtra.reduce((total, extra) => total + Number(extra.price), 0),
+        estimatedPrice: Math.round(Number(vehicleData.price) * Number(routeDistance) / 1000)+ tunnelFeeSum + selectedExtra.reduce((total, extra) => total + Number(extra.price), 0),
         estimatedDuration: routeDuration,
         status: 'pending',
         paymentStatus: 'pending',
@@ -395,6 +461,9 @@ const PassengerDashboard = () => {
       setRideState("none");
       setBookstatus("none");
       setPickup("");
+      setIsTunnelOption1(false);
+      setIsTunnelOption2(false);
+      setIsTunnelOption3(false);
       setDestination("");
       setPickupLocation({ lat: undefined, lng: undefined });
       setDropoffLocation({ lat: undefined, lng: undefined });
@@ -442,7 +511,7 @@ const PassengerDashboard = () => {
 
   const getTripData = async () => {
     try {
-      // 1. 獲取行程資料
+      
       const tripStatus = await axios.get(`${baseUrl}/api/trips/${currentTripId}`, {
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`,
@@ -459,7 +528,7 @@ const PassengerDashboard = () => {
 
       console.log("tripDriverId", trip.driver._id);
 
-      // 2. 獲取司機詳細資料
+      
       const driverData = await axios.get(`${baseUrl}/api/drivers/${trip.driver._id}`, {
         headers: {
           "Authorization": `Bearer ${localStorage.getItem("token")}`,
@@ -468,17 +537,16 @@ const PassengerDashboard = () => {
 
       console.log("driverData", driverData.data);
 
-      // 3. 設置司機資料到狀態
+      
       setDriver({
 
-        // 確保包含您需要的所有欄位
         name: trip.driver.name,
         phone: trip.driver.phone,
-        // 車輛相關資訊
+        
         vehicle: {
           type: driverData.data.data.vehicleType,
           plateNumber: driverData.data.data.vehiclePlateNumber,
-          // 其他車輛相關欄位
+          
         }
 
       });
@@ -486,7 +554,7 @@ const PassengerDashboard = () => {
       storedTrip.driver = {
         name: trip.driver.name,
         phone: trip.driver.phone,
-        // 車輛相關資訊
+        
         vehicle: {
           type: driverData.data.data.vehicleType,
           plateNumber: driverData.data.data.vehiclePlateNumber,
@@ -496,7 +564,7 @@ const PassengerDashboard = () => {
       localStorage.setItem('currentTrip', JSON.stringify(storedTrip));
     } catch (error) {
       console.error("Error fetching trip or driver data:", error);
-      // 可以添加錯誤處理，例如顯示錯誤訊息給用戶
+      
     }
   };
 
@@ -581,19 +649,26 @@ const PassengerDashboard = () => {
                         onRideConfirmed={handleRideConfirmed}
                         handlePickupSelect={handlePickupSelect}
                         handleDropoffSelect={handleDropoffSelect}
-                        selectedTunnels={selectedTunnels}
                         selectedExtra={selectedExtra}
-                        onTunnelSelect={(tunnels) => setSelectedTunnels(tunnels)}
                         onExtraSelect={(extras) => setSelectedExtra(extras)}
+                        isTunnelOption1={isTunnelOption1}
+                        isTunnelOption2={isTunnelOption2}
+                        isTunnelOption3={isTunnelOption3}
+                        setSeletectedTunnel={setSelectedTunnels}
+                        passTunnel={passTunnel}
+                        tunnelFeeSum={tunnelFeeSum}
                       />
                     )}
                     {rideState === "booking" && (
                       <RideStatus tripId={currentTripId} pickup={pickup} destination={destination}
                         extraSelections={selectedExtra}
                         driver={driver}
+                        passTunnel={passTunnel}
+                        tunnelFeeSum={tunnelFeeSum}
                         getTripData={getTripData}
                         onCancelBooking={() => handleCancelBooking(currentTripId)}
-                        vehiclePrice={price} onComplete={handleRideComplete} />
+                        vehiclePrice={price} 
+                        onComplete={handleRideComplete} />
                     )}
                     <Map
                       pickupLocation={pickupLocation}

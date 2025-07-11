@@ -42,21 +42,25 @@ const vehicleOptions = [
 ];
 
 const RideBooking = ({ pickup, destination, suggestionsPickup = [], suggestionsDestination = [],
-  bookstatus, routeDistance, quoteSearch, reSelectLocation,
+  bookstatus, routeDistance, isTunnelOption1, isTunnelOption2, isTunnelOption3, passTunnel, tunnelFeeSum, setSeletectedTunnel, quoteSearch, reSelectLocation,
   handlePickupSearch, handleDestinationSearch, onRideConfirmed, handlePickupSelect, handleDropoffSelect,
-  selectedTunnels = [], selectedExtra = [], onTunnelSelect, onExtraSelect }:
+  selectedExtra = [], onExtraSelect }:
   {
     pickup: string; destination: string; suggestionsPickup?: any[]; suggestionsDestination?: any[];
     bookstatus: string;
     routeDistance: string;
+    isTunnelOption1: boolean;
+    isTunnelOption2: boolean;
+    isTunnelOption3: boolean;
+    passTunnel: any[];
+    tunnelFeeSum: number;
+    setSeletectedTunnel: (tunnels: any[]) => void;
     quoteSearch: () => void;
     reSelectLocation: () => void;
     handlePickupSearch: (query: string) => void; handleDestinationSearch: (query: string) => void;
     handlePickupSelect: (suggestion: any) => void; handleDropoffSelect: (suggestion: any) => void;
     onRideConfirmed: (vehicleData: any) => void;
-    selectedTunnels?: any[];
     selectedExtra?: any[];
-    onTunnelSelect?: (tunnels: any[]) => void;
     onExtraSelect?: (extras: any[]) => void;
   }) => {
   const [scheduleMode, setScheduleMode] = useState(false);
@@ -66,13 +70,57 @@ const RideBooking = ({ pickup, destination, suggestionsPickup = [], suggestionsD
   const [showDestinationSuggestions, setShowDestinationSuggestions] = useState(false);
   const socketRef = useRef<any>(null);
   const [optionOpen, setOptionOpen] = useState(false);
-  const [tunnelOpen, setTunnelOpen] = useState(false);
+  const [total, setTotal] = useState(0);
 
-  const [isDefault, setIsDefault] = useState(true);
+
   const [isExtraDefault, setIsExtraDefault] = useState(true);
-  const [tunnelSelections, setTunnelSelections] = useState(selectedTunnels);
   const [extraSelections, setExtraSelections] = useState(selectedExtra);
+  const [option1, setOption1] = useState("Default");
+  const [option2, setOption2] = useState("Default");
+  const [option3, setOption3] = useState("Default");
+  useEffect(() => {
+    setSelectedVehicle(vehicleOptions[0].id);
+    setTotal(0);
+    setExtraSelections([]);
+    setOption1("Default");
+    setOption2("Default");
+    setOption3("Default");
+    console.log("useEffect")
+  }, [bookstatus]);
 
+  useEffect(() => {
+    let selectedTunnels = [];
+    if (option1 !== "Default") {
+      selectedTunnels.push({ name: option1, price: "0" });
+    }
+    if (option2 !== "Default") {
+      selectedTunnels.push({ name: option2, price: "0" });
+    }
+    if (option3 !== "Default") {
+      selectedTunnels.push({ name: option3, price: "0" });
+    }
+    setSeletectedTunnel(selectedTunnels);
+  }, [option1, option2, option3]);
+
+  useEffect(() => {
+    if (!isTunnelOption1) {
+      setOption1("Default");
+    }
+    if (!isTunnelOption2) {
+      setOption2("Default");
+    }
+    if (!isTunnelOption3) {
+      setOption3("Default");
+    }
+  }, [isTunnelOption1, isTunnelOption2, isTunnelOption3]);
+
+  useEffect(() => {
+    const vehiclePrice = vehicleOptions.find(v => v.id === selectedVehicle)?.price || 0;
+    const totalPrice = Math.round(Number(vehiclePrice) * Number(routeDistance) / 1000);
+    const extraPrice = extraSelections.reduce((total, extra) => total + Number(extra.price), 0);
+
+    setTotal(totalPrice + extraPrice + tunnelFeeSum);
+  }, [selectedVehicle, extraSelections, tunnelFeeSum]);
   // 
   const handleTestEvent = async () => {
     const response = await axios.get(`${baseUrl}/api/trips/test`);
@@ -127,37 +175,37 @@ const RideBooking = ({ pickup, destination, suggestionsPickup = [], suggestionsD
     e.preventDefault();
     await quoteSearch();
   };
-  useEffect(() => {
-    console.log(selectedTunnels)
-    if (selectedTunnels.length === 0) {
-      setIsDefault(true);
-    }
-  }, [selectedTunnels]);
+  // useEffect(() => {
+  //   console.log(selectedTunnels)
+  //   if (selectedTunnels.length === 0) {
+  //     setIsDefault(true);
+  //   }
+  // }, [selectedTunnels]);
 
-  const handleTunnelSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newTunnel = { name: e.target.name, price: e.target.value };
-    const updatedTunnels = selectedTunnels.filter((tunnel) => tunnel.name !== newTunnel.name);
-    if (!selectedTunnels.some((tunnel) => tunnel.name === newTunnel.name)) {
-      updatedTunnels.push(newTunnel);
-    }
-    setTunnelSelections(updatedTunnels);
-    if (onTunnelSelect) {
-      onTunnelSelect(updatedTunnels);
-    }
-    setIsDefault(false);
-  };
+  // const handleTunnelSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const newTunnel = { name: e.target.name, price: e.target.value };
+  //   const updatedTunnels = selectedTunnels.filter((tunnel) => tunnel.name !== newTunnel.name);
+  //   if (!selectedTunnels.some((tunnel) => tunnel.name === newTunnel.name)) {
+  //     updatedTunnels.push(newTunnel);
+  //   }
+  //   setTunnelSelections(updatedTunnels);
+  //   if (onTunnelSelect) {
+  //     onTunnelSelect(updatedTunnels);
+  //   }
+  //   setIsDefault(false);
+  // };
 
-  const handleDefault = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const checked = e.target.checked;
-    setIsDefault(checked);
+  // const handleDefault = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const checked = e.target.checked;
+  //   setIsDefault(checked);
 
-    if (checked) {
-      setTunnelSelections([]);
-      if (onTunnelSelect) {
-        onTunnelSelect([]);
-      }
-    }
-  };
+  //   if (checked) {
+  //     setTunnelSelections([]);
+  //     if (onTunnelSelect) {
+  //       onTunnelSelect([]);
+  //     }
+  //   }
+  // };
 
   const handleExtraSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const newExtra = { name: e.target.name, price: e.target.value };
@@ -265,7 +313,51 @@ const RideBooking = ({ pickup, destination, suggestionsPickup = [], suggestionsD
             )}
           </div>
         </div>
-        <div className="cursor-pointer" onClick={() => setTunnelOpen(!tunnelOpen)}>
+        {isTunnelOption1 && (<div className="grid gap-2">
+          <label htmlFor="option1">Yuen Long Tunnel Option</label>
+          <select
+            id="option1"
+            value={option1}
+            onChange={(e) => setOption1(e.target.value)}
+            className="w-full rounded-md border-2 border-input bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <option value="Default" className="text-gray-700">Default</option>
+            <option value="Tai Lam Tunnel" className="text-gray-700">Tai Lam Tunnel $43</option>
+            <option value="Tuen Mun Road" className="text-gray-700">Tuen Mun Road $0</option>
+          </select>
+        </div>)}
+        {isTunnelOption2 && (<div className="grid gap-2">
+          <label htmlFor="option2">Sha Tin Tunnel Option</label>
+          <select
+            id="option2"
+            value={option2}
+            onChange={(e) => setOption2(e.target.value)}
+            className="w-full rounded-md border-2 border-input bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <option value="Default" className="text-gray-700">Default</option>
+            <option value="Shing Mun Tunnels" className="text-gray-700">Shing Mun Tunnels $5</option>
+            <option value="Lion Rock Tunnel" className="text-gray-700">Lion Rock Tunnel $8</option>
+            <option value="Eagle's Nest Tunnel" className="text-gray-700">Eagle's Nest Tunnel $8</option>
+            <option value="Tate's Cairn Tunnel" className="text-gray-700">Tate's Cairn Tunnel $24</option>
+            <option value="Tai Po Road" className="text-gray-700">Tai Po Road $0</option>
+          </select>
+        </div>)}
+        {isTunnelOption3 && (<div className="grid gap-2">
+          <label htmlFor="option3">Hong Kong Tunnel Option</label>
+          <select
+            id="option3"
+            value={option3}
+            onChange={(e) => setOption3(e.target.value)}
+            className="w-full rounded-md border-2 border-input bg-white px-3 py-2 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <option value="Default" className="text-gray-700">Default</option>
+            <option value="Cross-Harbour Tunnel" className="text-gray-700">Cross-Harbour Tunnel $50</option>
+            <option value="Eastern Harbour Crossing" className="text-gray-700">Eastern Harbour Crossing $50</option>
+            <option value="Western Harbour Tunnel" className="text-gray-700">Western Harbour Tunnel $50</option>
+
+          </select>
+        </div>)}
+        {/* <div className="cursor-pointer" onClick={() => setTunnelOpen(!tunnelOpen)}>
           Tunnel Options
         </div>
         {tunnelOpen && (
@@ -383,7 +475,7 @@ const RideBooking = ({ pickup, destination, suggestionsPickup = [], suggestionsD
               </div>
             </div>
           </div>
-        )}
+        )} */}
       </div>)}
       {bookstatus === "quote" && (<Tabs defaultValue="now">
         <TabsList className="grid w-full grid-cols-2 mb-4">
@@ -392,7 +484,7 @@ const RideBooking = ({ pickup, destination, suggestionsPickup = [], suggestionsD
         </TabsList>
 
         <TabsContent value="now" className="space-y-4">
-          
+
 
           <div className="mt-6">
             <p className="text-sm text-muted-foreground mb-2">Choose a ride type:</p>
@@ -408,73 +500,92 @@ const RideBooking = ({ pickup, destination, suggestionsPickup = [], suggestionsD
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="text-lg">{option.icon}</span>
-                    <span className="text-sm font-medium">$ {Math.round(Number(option.price)*Number(routeDistance)/1000)}</span>
+                    <span className="text-sm font-medium">$ {Math.round(Number(option.price) * Number(routeDistance) / 1000)}</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">{option.name}</span>
-                   {/* <span className="text-xs text-muted-foreground">{option.time}</span> */}
+                    {/* <span className="text-xs text-muted-foreground">{option.time}</span> */}
                   </div>
                 </button>
               ))}
             </div>
           </div>
-          <div className="cursor-pointer" onClick={() => setOptionOpen(!optionOpen)}>
-          Extra Options
-        </div>
-          {optionOpen && (
-          <div className="w-full bg-white border rounded-b-lg shadow-lg z-10 mt-1">
-           <div className="space-y-2">
-              <div className="space-x-2">
-                <input
-                  type="checkbox"
-                  id="extraDefault"
-                  name="Default"
-                  value="0"
-                  checked={isExtraDefault}
-                  onChange={(e) => handleExtraDefault(e)}
-                />
-                <label htmlFor="extraDefault">No Extra (HK$0)</label>
+          {passTunnel.length > 0 && (
+            <div className="space-y-3 mt-6">
+              <div className="flex items-start space-x-3">
+                <div>
+                  <div className="w-3 h-3 rounded-full bg-blue-500 mt-1"></div>
+                </div>
+                <div>
+                  <p className="font-medium"> Tunnel</p>
+                  <p className="text-sm text-muted-foreground">{passTunnel.join(", ")}</p>
+                  <p className="text-sm text-muted-foreground">Tunnel fee: HK$ {tunnelFeeSum}</p>
+                </div>
               </div>
-              <div className="space-x-2">
-                <input
-                  type="checkbox"
-                  id="Pet"
-                  name="Pet Friendly"
-                  value="10"
-                  checked={selectedExtra.some((extra) => extra.name === "Pet Friendly")}
-                  onChange={(e) => handleExtraSelect(e)}
-                />
-                <label htmlFor="Pet">Pet Friendly (HK$10)</label>
-              </div>
-              <div className="space-x-2">
-                <input
-                  type="checkbox"
-                  id="English"
-                  name="English Friendly"
-                  value="5"
-                  checked={selectedExtra.some((extra) => extra.name === "English Friendly")}
-                  onChange={(e) => handleExtraSelect(e)}
-                />
-                <label htmlFor="English">English Friendly (HK$5)</label>
-              </div>
-              <div className="space-x-2">
-                <input
-                  type="checkbox"
-                  id="Wheelchair"
-                  name="Wheelchair"
-                  value="15"
-                  checked={selectedExtra.some((extra) => extra.name === "Wheelchair")}
-                  onChange={(e) => handleExtraSelect(e)}
-                />
-                <label htmlFor="Wheelchair">Wheelchair (HK$15)</label>
-              </div>
-              
             </div>
+          )}
+          <div className="cursor-pointer" onClick={() => setOptionOpen(!optionOpen)}>
+
+            Extra Options(click to choose)
           </div>
-        )}
+          {optionOpen && (
+            <div className="w-full bg-white border rounded-b-lg shadow-lg z-10 mt-1">
+              <div className="space-y-2">
+                <div className="space-x-2">
+                  <input
+                    type="checkbox"
+                    id="extraDefault"
+                    name="Default"
+                    value="0"
+                    checked={isExtraDefault}
+                    onChange={(e) => handleExtraDefault(e)}
+                  />
+                  <label htmlFor="extraDefault">No Extra (HK$0)</label>
+                </div>
+                <div className="space-x-2">
+                  <input
+                    type="checkbox"
+                    id="Pet"
+                    name="Pet Friendly"
+                    value="10"
+                    checked={selectedExtra.some((extra) => extra.name === "Pet Friendly")}
+                    onChange={(e) => handleExtraSelect(e)}
+                  />
+                  <label htmlFor="Pet">Pet Friendly (HK$10)</label>
+                </div>
+                <div className="space-x-2">
+                  <input
+                    type="checkbox"
+                    id="English"
+                    name="English Friendly"
+                    value="5"
+                    checked={selectedExtra.some((extra) => extra.name === "English Friendly")}
+                    onChange={(e) => handleExtraSelect(e)}
+                  />
+                  <label htmlFor="English">English Friendly (HK$5)</label>
+                </div>
+                <div className="space-x-2">
+                  <input
+                    type="checkbox"
+                    id="Wheelchair"
+                    name="Wheelchair"
+                    value="15"
+                    checked={selectedExtra.some((extra) => extra.name === "Wheelchair")}
+                    onChange={(e) => handleExtraSelect(e)}
+                  />
+                  <label htmlFor="Wheelchair">Wheelchair (HK$15)</label>
+                </div>
 
+              </div>
+            </div>
+          )}
+          <hr />
+          <div className="flex justify-between">
+            <p className="font-medium">Total</p>
+            <p className="font-medium">HK$ {total}</p>
+          </div>
 
-
+          <hr />
           <div className="mt-4 bg-uber-background/50 rounded-lg p-3 text-sm">
             {/* <div className="flex justify-between items-center">
               <span className="text-muted-foreground">Estimated arrival</span>

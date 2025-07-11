@@ -72,7 +72,7 @@ export const signUp = async (credentials: SignUpCredentials): Promise<AuthRespon
   try {
     const response = await api.post('/register', {
       ...credentials,
-      phone: `+${credentials.countryCode}${credentials.phoneNumber}`
+      phone: `${credentials.countryCode}${credentials.phoneNumber}`
     });
     const { token, user } = response.data;
     setToken(token);

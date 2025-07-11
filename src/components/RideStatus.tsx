@@ -25,12 +25,14 @@ interface RideStatusProps {
   vehiclePrice: number;
   extraSelections: any[];
   driver: any;
+  passTunnel: any[];
+  tunnelFeeSum: number;
   getTripData: () => void;
   onCancelBooking: () => void;
   onComplete: () => void;
 }
 
-const RideStatus = ({ pickup, destination, extraSelections, tripId, vehiclePrice, driver, getTripData, onComplete, onCancelBooking }: RideStatusProps) => {
+const RideStatus = ({ pickup, destination, extraSelections, tripId, vehiclePrice, driver, passTunnel, tunnelFeeSum, getTripData, onComplete, onCancelBooking }: RideStatusProps) => {
   const [rideState, setRideState] = useState<RideState>(null);
   const [progress, setProgress] = useState(0);
   const [rating, setRating] = useState(0);
@@ -222,13 +224,28 @@ const RideStatus = ({ pickup, destination, extraSelections, tripId, vehiclePrice
               </div>
             </div>
           </div>
+          {/* tunnel */}
+          {passTunnel.length > 0 && (
+            <div className="space-y-3 mt-6">
+              <div className="flex items-start space-x-3">
+                <div>
+                  <div className="w-3 h-3 rounded-full bg-blue-500 mt-1"></div>
+                </div>
+                <div>
+                  <p className="font-medium"> Tunnel</p>
+                  <p className="text-sm text-muted-foreground">{passTunnel.join(", ")}</p>
+                  
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* extra */}
           {extraSelections.length > 0 && (
             <div className="space-y-3 mt-6">
               <div className="flex items-start space-x-3">
                 <div>
-                  <div className="w-3 h-3 rounded-full bg-blue-500 mt-1"></div>
+                  <div className="w-3 h-3 rounded-full bg-orange-500 mt-1"></div>
                 </div>
                 <div>
                   <p className="font-medium">Extra</p>

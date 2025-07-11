@@ -127,7 +127,12 @@ const AuthModal = ({ isOpen, onClose, mode, setMode }: AuthModalProps) => {
               : 'Create your account'}
           </DialogDescription>
         </DialogHeader>
-        <Tabs defaultValue={mode} onValueChange={(value: "signin" | "signup") => setMode(value)} className="w-full">
+        <Tabs 
+          defaultValue={mode}
+          value={mode}
+          onValueChange={(value) => setMode(value as "signin" | "signup")} 
+          className="w-full"
+        >
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="signin" className="w-full">Sign In</TabsTrigger>
             <TabsTrigger value="signup" className="w-full">Sign Up</TabsTrigger>
