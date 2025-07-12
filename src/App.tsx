@@ -31,9 +31,9 @@ const App = () => (
                 <Route
                   path="/passenger/dashboard"
                   element={
-                    <ProtectedRoute role="passenger">
+                   // <ProtectedRoute role="passenger">
                       <PassengerDashboard />
-                    </ProtectedRoute>
+                   // </ProtectedRoute>
                   }
                 />
                 <Route

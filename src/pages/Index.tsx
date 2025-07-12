@@ -23,7 +23,7 @@ const Index = () => {
     if (!user) {
       setAuthModalOpen(true);
       setAuthMode('signin');
-    } else if (user.role === 'passenger') {
+    } else if (user.role === 'passenger'||user.role === 'driver') {
       navigate('/passenger/dashboard');
     }
   };
